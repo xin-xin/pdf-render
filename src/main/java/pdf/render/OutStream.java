@@ -1,4 +1,5 @@
-package sg.astar.ihpc.oolib;
+package pdf.render;
+
 import com.sun.star.io.BufferSizeExceededException;
 import com.sun.star.io.IOException;
 import com.sun.star.io.NotConnectedException;

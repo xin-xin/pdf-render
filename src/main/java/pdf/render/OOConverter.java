@@ -1,7 +1,9 @@
-package sg.astar.ihpc.oolib;
+package pdf.render;
 
 import java.io.ByteArrayOutputStream;
 import java.net.MalformedURLException;
+
+import org.apache.log4j.Logger;
 
 import com.sun.star.beans.PropertyValue;
 import com.sun.star.comp.helper.Bootstrap;
@@ -23,31 +25,34 @@ import com.sun.star.uno.XComponentContext;
  *
  */
 public class OOConverter {
+	private static Logger log = Logger.getLogger(OOConverter.class);
+
 	public static byte[] startConvert(byte[] inputData) throws Exception {
 
 		// Getting the given type to convert to
 		String convertType = "writer_pdf_Export";
 
 		XComponentContext context = createContext();
-		System.out.println("connected to a running office ...");
+		log.debug("connected to a running office ...");
 
 		XComponentLoader loader = createComponentLoader(context);
-		System.out.println("loader created ...");
+		log.debug("loader created ...");
 
 		XSeekableInputStream xInput = SequenceInputStream.createStreamFromSequence(context, inputData);
-		
-		Object doc = loadDocument(loader, xInput); // Use Object type, it will auto detect input document type.
-		System.out.println("document loaded ...");
 
+		Object doc = loadDocument(loader, xInput); // Use Object type, it will
+													// auto detect input
+													// document type.
+		log.debug("document loaded ...");
 		ByteArrayOutputStream byteOutStream = convertDocument(doc, convertType);
-		System.out.println("document converted ...");
+		log.debug("document converted ...");
 
 		byte[] buffer = byteOutStream.toByteArray();
 		byteOutStream.flush();
-		
+
 		closeDocument(doc);
-		System.out.println("document closed ...");
-		
+		log.debug("document closed ...");
+
 		return buffer;
 	}
 
@@ -72,13 +77,13 @@ public class OOConverter {
 		PropertyValue propertyValue2 = new PropertyValue();
 		propertyValue2.Name = "InputStream";
 		propertyValue2.Value = sinput;
-		
+
 		return loader.loadComponentFromURL("private:stream", "_blank", 0, new PropertyValue[] { propertyValue1, propertyValue2 });
 	}
 
 	static ByteArrayOutputStream convertDocument(Object doc, String convertType) throws com.sun.star.io.IOException, MalformedURLException {
 		ByteArrayOutputStream outputStream = null;
-		
+
 		// Preparing properties for converting the document
 		// Setting the flag for overwriting
 		PropertyValue overwriteValue = new PropertyValue();
@@ -93,23 +98,22 @@ public class OOConverter {
 		PropertyValue outputValue = new PropertyValue();
 		outputValue.Name = "OutputStream";
 		outputValue.Value = outStream;
-		
 
 		XStorable storable = (XStorable) UnoRuntime.queryInterface(XStorable.class, doc);
 		// Storing and converting the document
-        try { 
-        	storable.storeToURL("private:stream", new PropertyValue[] {overwriteValue, filterValue, outputValue});
-        } catch (IOException ex) { 
-            ex.printStackTrace();
-        } 
-        try {
-        	outputStream = new ByteArrayOutputStream();
-            outputStream.write(outStream.toByteArray()); 
-        } catch (java.io.IOException ex) { 
-            ex.printStackTrace();
-        }
-        
-        return outputStream;
+		try {
+			storable.storeToURL("private:stream", new PropertyValue[] { overwriteValue, filterValue, outputValue });
+		} catch (IOException ex) {
+			ex.printStackTrace();
+		}
+		try {
+			outputStream = new ByteArrayOutputStream();
+			outputStream.write(outStream.toByteArray());
+		} catch (java.io.IOException ex) {
+			ex.printStackTrace();
+		}
+
+		return outputStream;
 	}
 
 	static void closeDocument(Object doc) throws SQLException {
