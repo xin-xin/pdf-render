@@ -1,6 +1,5 @@
 package pdf.render;
 
-import java.io.ByteArrayOutputStream;
 import java.net.MalformedURLException;
 
 import org.apache.log4j.Logger;
@@ -27,49 +26,20 @@ import com.sun.star.uno.XComponentContext;
 public class OOConverter {
 	private static Logger log = Logger.getLogger(OOConverter.class);
 
-	public static byte[] startConvert(byte[] inputData) throws Exception {
-
-		// Getting the given type to convert to
-		String convertType = "writer_pdf_Export";
-
-		XComponentContext context = createContext();
-		log.debug("connected to a running office ...");
-
-		XComponentLoader loader = createComponentLoader(context);
-		log.debug("loader created ...");
-
-		XSeekableInputStream xInput = SequenceInputStream.createStreamFromSequence(context, inputData);
-
-		Object doc = loadDocument(loader, xInput); // Use Object type, it will
-													// auto detect input
-													// document type.
-		log.debug("document loaded ...");
-		ByteArrayOutputStream byteOutStream = convertDocument(doc, convertType);
-		log.debug("document converted ...");
-
-		byte[] buffer = byteOutStream.toByteArray();
-		byteOutStream.flush();
-
-		closeDocument(doc);
-		log.debug("document closed ...");
-
-		return buffer;
-	}
-
 	// get the remote office component context
-	static XComponentContext createContext() throws Exception {
+	private static XComponentContext createContext() throws Exception {
 		// get the remote office component context
 		return Bootstrap.bootstrap();
 	}
 
-	static XComponentLoader createComponentLoader(XComponentContext context) throws com.sun.star.uno.Exception {
+	private static XComponentLoader createComponentLoader(XComponentContext context) throws com.sun.star.uno.Exception {
 		// get the remote office service manager
 		XMultiComponentFactory mcf = context.getServiceManager();
 		Object desktop = mcf.createInstanceWithContext("com.sun.star.frame.Desktop", context);
 		return UnoRuntime.queryInterface(XComponentLoader.class, desktop);
 	}
 
-	static XComponent loadDocument(XComponentLoader loader, XSeekableInputStream sinput) throws com.sun.star.io.IOException, IllegalArgumentException, MalformedURLException {
+	private static XComponent loadDocument(XComponentLoader loader, XSeekableInputStream sinput) throws com.sun.star.io.IOException, IllegalArgumentException, MalformedURLException {
 		// Preparing properties for loading the document
 		PropertyValue propertyValue1 = new PropertyValue();
 		propertyValue1.Name = "Hidden";
@@ -81,9 +51,31 @@ public class OOConverter {
 		return loader.loadComponentFromURL("private:stream", "_blank", 0, new PropertyValue[] { propertyValue1, propertyValue2 });
 	}
 
-	static ByteArrayOutputStream convertDocument(Object doc, String convertType) throws com.sun.star.io.IOException, MalformedURLException {
-		ByteArrayOutputStream outputStream = null;
+	public static byte[] convert(byte[] inputData) throws Exception {
+		// Getting the given type to convert to
+		String convertType = "writer_pdf_Export";
 
+		XComponentContext context = createContext();
+		log.debug("connected to a running office ...");
+
+		XComponentLoader loader = createComponentLoader(context);
+		log.debug("loader created ...");
+
+		XSeekableInputStream xInput = SequenceInputStream.createStreamFromSequence(context, inputData);
+		Object doc = loadDocument(loader, xInput); // Use Object type, it will
+													// auto detect input
+													// document type.
+		log.debug("document loaded ...");
+		byte[] buffer = convertDocument(doc, convertType);
+		log.debug("document converted ...");
+		closeDocument(doc);
+		log.debug("document closed ...");
+
+		return buffer;
+	}
+
+	private static byte[] convertDocument(Object doc, String convertType) throws com.sun.star.io.IOException, MalformedURLException {
+		byte[] result = {};
 		// Preparing properties for converting the document
 		// Setting the flag for overwriting
 		PropertyValue overwriteValue = new PropertyValue();
@@ -103,20 +95,21 @@ public class OOConverter {
 		// Storing and converting the document
 		try {
 			storable.storeToURL("private:stream", new PropertyValue[] { overwriteValue, filterValue, outputValue });
+			result = outStream.toByteArray();
 		} catch (IOException ex) {
-			ex.printStackTrace();
-		}
-		try {
-			outputStream = new ByteArrayOutputStream();
-			outputStream.write(outStream.toByteArray());
-		} catch (java.io.IOException ex) {
-			ex.printStackTrace();
+			log.error("Convert document failed.", ex);
+		} finally {
+			try {
+				outStream.close();
+			} catch (Exception e) {
+				log.error("Close output stream error.", e);
+			}
 		}
 
-		return outputStream;
+		return result;
 	}
 
-	static void closeDocument(Object doc) throws SQLException {
+	private static void closeDocument(Object doc) throws SQLException {
 		// Closing the converted document. Use XCloseable.clsoe if the
 		// interface is supported, otherwise use XComponent.dispose
 		XCloseable closeable = (XCloseable) UnoRuntime.queryInterface(XCloseable.class, doc);

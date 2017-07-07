@@ -22,7 +22,7 @@ public class Test {
 		byte[] input = Files.readAllBytes(fileLocation);
 		
 		// Call the convert method
-		byte[] result = OOConverter.startConvert(input);
+		byte[] result = OOConverter.convert(input);
 		
 		// output testing result
 		FileOutputStream fos = new FileOutputStream(outputFilePath);
