@@ -9,7 +9,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class PDFSiteServer implements ApplicationRunner {
+public class PDFServer implements ApplicationRunner {
 	private Logger log = Logger.getLogger(this.getClass());
 
 	public void run(ApplicationArguments args) {
@@ -18,6 +18,6 @@ public class PDFSiteServer implements ApplicationRunner {
 	}
 
 	public static void main(String[] args) {
-		SpringApplication.run(PDFSiteServer.class, args);
+		SpringApplication.run(PDFServer.class, args);
 	}
 }
