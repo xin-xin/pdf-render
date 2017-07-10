@@ -29,19 +29,24 @@ public class PDFServer implements ApplicationRunner {
 			try {
 				Configuration config = new PropertiesConfiguration(params.get(0));
 				openOfficeLib = config.getString("openoffice");
-
-				URL u = new File(openOfficeLib).toURI().toURL();
-				URLClassLoader urlClassLoader = (URLClassLoader) ClassLoader.getSystemClassLoader();
-				Class urlClass = URLClassLoader.class;
-				Method method = urlClass.getDeclaredMethod("addURL", new Class[] { URL.class });
-				method.setAccessible(true);
-				method.invoke(urlClassLoader, new Object[] { u });
+				log.debug(openOfficeLib);
 			} catch (Exception ex) {
-				log.error("Failed to set openoffice information, please verify configuration file format.", ex);
+				log.error("Failed to read openoffice information, please verify configuration file format.", ex);
 				System.exit(-1);
 			}
 		}
 
+		try {
+			URL u = new File(openOfficeLib).toURI().toURL();
+			URLClassLoader urlClassLoader = (URLClassLoader) ClassLoader.getSystemClassLoader();
+			Class urlClass = URLClassLoader.class;
+			Method method = urlClass.getDeclaredMethod("addURL", new Class[] { URL.class });
+			method.setAccessible(true);
+			method.invoke(urlClassLoader, new Object[] { u });
+		} catch (Exception ex) {
+			log.error("Failed to set openoffice information, please verify classpath.", ex);
+			System.exit(-1);
+		}
 	}
 
 	public static void main(String[] args) {
