@@ -55,8 +55,9 @@ public class OOConverter {
 		// Getting the given type to convert to
 		String convertType = "writer_pdf_Export";
 
+		log.debug("connecting to a running office ...");
 		XComponentContext context = createContext();
-		log.debug("connected to a running office ...");
+		log.debug("connected.");
 
 		XComponentLoader loader = createComponentLoader(context);
 		log.debug("loader created ...");
