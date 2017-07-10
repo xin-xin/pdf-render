@@ -94,6 +94,12 @@
 			<artifactId>log4j</artifactId>
 			<version>1.2.17</version>
 		</dependency>
+		<dependency>
+			<groupId>commons-configuration</groupId>
+			<artifactId>commons-configuration</artifactId>
+			<version>1.10</version>
+		</dependency>
+
 		<!-- https://mvnrepository.com/artifact/org.libreoffice/juh -->
 		<dependency>
 			<groupId>org.libreoffice</groupId>
