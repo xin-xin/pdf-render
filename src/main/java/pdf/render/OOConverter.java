@@ -5,6 +5,9 @@ import java.net.MalformedURLException;
 import org.apache.log4j.Logger;
 
 import com.sun.star.beans.PropertyValue;
+import com.sun.star.beans.XPropertySet;
+import com.sun.star.bridge.UnoUrlResolver;
+import com.sun.star.bridge.XUnoUrlResolver;
 import com.sun.star.comp.helper.Bootstrap;
 import com.sun.star.frame.XComponentLoader;
 import com.sun.star.frame.XStorable;
@@ -29,13 +32,32 @@ public class OOConverter {
 	// get the remote office component context
 	private static XComponentContext createContext() throws Exception {
 		// get the remote office component context
-		return Bootstrap.bootstrap();
+		return Bootstrap.createInitialComponentContext(null);
 	}
 
 	private static XComponentLoader createComponentLoader(XComponentContext context) throws com.sun.star.uno.Exception {
 		// get the remote office service manager
-		XMultiComponentFactory mcf = context.getServiceManager();
-		Object desktop = mcf.createInstanceWithContext("com.sun.star.frame.Desktop", context);
+		// XMultiComponentFactory mcf = context.getServiceManager();
+		// Object desktop =
+		// mcf.createInstanceWithContext("com.sun.star.frame.Desktop", context);
+
+		// create a connector, so that it can contact the office
+		XUnoUrlResolver urlResolver = UnoUrlResolver.create(context);
+		Object initialObject = urlResolver.resolve("uno:socket,host=localhost,port=8100;urp;StarOffice.ServiceManager");
+		XMultiComponentFactory xOfficeFactory = (XMultiComponentFactory) UnoRuntime.queryInterface(XMultiComponentFactory.class, initialObject);
+
+		// retrieve the component context as property (it is not yet exported
+		// from the office)
+		// Query for the XPropertySet interface.
+		XPropertySet xProperySet = (XPropertySet) UnoRuntime.queryInterface(XPropertySet.class, xOfficeFactory);
+		// Get the default context from the office server.
+		Object oDefaultContext = xProperySet.getPropertyValue("DefaultContext");
+		// Query for the interface XComponentContext.
+		XComponentContext xOfficeComponentContext = (XComponentContext) UnoRuntime.queryInterface(XComponentContext.class, oDefaultContext);
+		// now create the desktop service
+		// NOTE: use the office component context here!
+		Object desktop = xOfficeFactory.createInstanceWithContext("com.sun.star.frame.Desktop", xOfficeComponentContext);
+
 		return UnoRuntime.queryInterface(XComponentLoader.class, desktop);
 	}
 

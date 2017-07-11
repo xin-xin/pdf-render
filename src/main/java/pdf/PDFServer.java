@@ -4,6 +4,7 @@ import java.io.File;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.util.Arrays;
 import java.util.List;
 
 import org.apache.commons.configuration.Configuration;
@@ -51,7 +52,7 @@ public class PDFServer implements ApplicationRunner {
 				method.invoke(urlClassLoader, new Object[] { libs.toURI().toURL() });
 			}
 
-			log.debug(urlClassLoader.getURLs());
+			log.debug(Arrays.toString(urlClassLoader.getURLs()));
 		} catch (Exception ex) {
 			log.error("Failed to set openoffice information, please verify classpath.", ex);
 			System.exit(-1);
