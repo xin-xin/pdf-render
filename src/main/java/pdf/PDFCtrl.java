@@ -29,6 +29,7 @@ public class PDFCtrl {
 
 			return result;
 		} catch (Exception e) {
+			log.error("OOConverter error. ", e);
 			return result;
 		}
 	}
