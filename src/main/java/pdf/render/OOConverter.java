@@ -9,7 +9,6 @@ import com.sun.star.beans.PropertyValue;
 import com.sun.star.comp.helper.Bootstrap;
 import com.sun.star.frame.XComponentLoader;
 import com.sun.star.frame.XStorable;
-import com.sun.star.io.IOException;
 import com.sun.star.io.SequenceInputStream;
 import com.sun.star.io.XSeekableInputStream;
 import com.sun.star.lang.IllegalArgumentException;
@@ -102,18 +101,14 @@ public class OOConverter {
 		// Storing and converting the document
 		try {
 			storable.storeToURL("private:stream", new PropertyValue[] { overwriteValue, filterValue, outputValue });
-		} catch (IOException ex) {
-			log.error("storeToURL error.", ex);
-		}
-		try {
 			outputStream = new ByteArrayOutputStream();
 			outputStream.write(outStream.toByteArray());
 		} catch (java.io.IOException ex) {
 			log.error("convertDocument error.", ex);
 		} finally {
-			if (outputStream != null) {
+			if (outStream != null) {
 				try {
-					outputStream.close();
+					outStream.close();
 				} catch (java.io.IOException e) {
 					log.error("Close output steam failed.", e);
 				}
