@@ -3,6 +3,8 @@ package pdf.render;
 import java.io.ByteArrayOutputStream;
 import java.net.MalformedURLException;
 
+import org.apache.log4j.Logger;
+
 import com.sun.star.beans.PropertyValue;
 import com.sun.star.comp.helper.Bootstrap;
 import com.sun.star.frame.XComponentLoader;
@@ -23,32 +25,32 @@ import com.sun.star.uno.XComponentContext;
  *
  */
 public class OOConverter {
+	private static Logger log = Logger.getLogger(OOConverter.class);
+
 	public static byte[] startConvert(byte[] inputData) throws Exception {
 
 		// Getting the given type to convert to
 		String convertType = "writer_pdf_Export";
 
 		XComponentContext context = createContext();
-		System.out.println("connected to a running office ...");
+		log.debug("connected to a running office ...");
 
 		XComponentLoader loader = createComponentLoader(context);
-		System.out.println("loader created ...");
+		log.debug("loader created ...");
 
 		XSeekableInputStream xInput = SequenceInputStream.createStreamFromSequence(context, inputData);
 
-		Object doc = loadDocument(loader, xInput); // Use Object type, it will
-													// auto detect input
-													// document type.
-		System.out.println("document loaded ...");
+		Object doc = loadDocument(loader, xInput);
+		log.debug("document loaded ...");
 
 		ByteArrayOutputStream byteOutStream = convertDocument(doc, convertType);
-		System.out.println("document converted ...");
+		log.debug("document converted ...");
 
 		byte[] buffer = byteOutStream.toByteArray();
 		byteOutStream.flush();
 
 		closeDocument(doc);
-		System.out.println("document closed ...");
+		log.debug("document closed ...");
 
 		return buffer;
 	}
@@ -101,13 +103,21 @@ public class OOConverter {
 		try {
 			storable.storeToURL("private:stream", new PropertyValue[] { overwriteValue, filterValue, outputValue });
 		} catch (IOException ex) {
-			ex.printStackTrace();
+			log.error("storeToURL error.", ex);
 		}
 		try {
 			outputStream = new ByteArrayOutputStream();
 			outputStream.write(outStream.toByteArray());
 		} catch (java.io.IOException ex) {
-			ex.printStackTrace();
+			log.error("convertDocument error.", ex);
+		} finally {
+			if (outputStream != null) {
+				try {
+					outputStream.close();
+				} catch (java.io.IOException e) {
+					log.error("Close output steam failed.", e);
+				}
+			}
 		}
 
 		return outputStream;
