@@ -21,7 +21,7 @@ public class PDFCtrl {
 		byte[] result = {};
 
 		try {
-			result = OOConverter.convert(file.getBytes());
+			result = OOConverter.startConvert(file.getBytes());
 			log.debug("Convert file size: " + result.length);
 			
 			response.setContentType("application/octet_stream");
